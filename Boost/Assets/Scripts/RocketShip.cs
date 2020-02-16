@@ -24,10 +24,11 @@ public class RocketShip : MonoBehaviour
 
     void Update()
     {
-        ProcessInput();
+        Thrust();
+        Rotate();
     }
 
-    private void ProcessInput()
+    private void Thrust()
     {
         if (Pressed(FLY))
         {
@@ -36,6 +37,11 @@ public class RocketShip : MonoBehaviour
         }
         else
             StopEngine();
+    }
+
+    private void Rotate()
+    {
+        rigidBody.freezeRotation = true; //Gain Manual Control
 
         if (Pressed(TILT_RIGHT) && Pressed(TILT_LEFT))
             return;
@@ -43,6 +49,8 @@ public class RocketShip : MonoBehaviour
             Tilt(right);
         else if (Pressed(TILT_LEFT))
             Tilt(left);
+
+        rigidBody.freezeRotation = false; //Release Manual Control
     }
 
     private void Fly() => rigidBody.AddRelativeForce(up);

@@ -9,9 +9,17 @@ public class RocketShip : MonoBehaviour
     private const KeyCode TILT_LEFT = KeyCode.A;
     private const KeyCode TILT_RIGHT = KeyCode.D;
 
+    private const float LEFTOVER_DECREASE_COEFFICIENT = 0.99f;
+    private const float LEFTOVER_DECREASE_THRESHOLD = 0.01f;
+
+    [SerializeField] float rotationThrust;
+
     private Vector3 up = Vector3.up;
     private Vector3 left = Vector3.forward;
     private Vector3 right = Vector3.back;
+
+    private Vector3 leftLeftover = Vector3.zero;
+    private Vector3 rightLeftover = Vector3.zero;
 
     private Rigidbody rigidBody;
     private AudioSource audioSource;
@@ -41,21 +49,27 @@ public class RocketShip : MonoBehaviour
 
     private void Rotate()
     {
-        rigidBody.freezeRotation = true; //Gain Manual Control
+        GainManualControl();
 
-        if (Pressed(TILT_RIGHT) && Pressed(TILT_LEFT))
-            return;
+        if (Pressed(TILT_RIGHT) && Pressed(TILT_LEFT)) { }
         else if (Pressed(TILT_RIGHT))
-            Tilt(right);
+            TiltRight();
         else if (Pressed(TILT_LEFT))
-            Tilt(left);
+            TiltLeft();
 
-        rigidBody.freezeRotation = false; //Release Manual Control
+        LeftoverRight();
+        LeftoverLeft();
+
+        ReleaseManualControl();
     }
 
-    private void Fly() => rigidBody.AddRelativeForce(up);
+    private void GainManualControl() => rigidBody.freezeRotation = true;
 
-    private void Tilt(Vector3 direction) => transform.Rotate(direction);
+    private void ReleaseManualControl() => rigidBody.freezeRotation = false;
+
+    private void Tilt(Vector3 direction) => transform.Rotate(direction * rotationThrust * Time.deltaTime);
+
+    private void Fly() => rigidBody.AddRelativeForce(up);
 
     private bool Pressed(KeyCode command) => Input.GetKey(command);
 
@@ -69,5 +83,45 @@ public class RocketShip : MonoBehaviour
     {
         if (this.audioSource.isPlaying)
             this.audioSource.Stop();
+    }
+
+    private void LeftoverRight()
+    {
+        if (leftLeftover != Vector3.zero)
+        {
+            Tilt(leftLeftover);
+
+            leftLeftover *= LEFTOVER_DECREASE_COEFFICIENT;
+
+            if (Math.Abs(leftLeftover.z) <= LEFTOVER_DECREASE_THRESHOLD)
+                leftLeftover = Vector3.zero;
+        }
+    }
+
+    private void LeftoverLeft()
+    {
+        if (rightLeftover != Vector3.zero)
+        {
+            Tilt(rightLeftover);
+
+            rightLeftover *= LEFTOVER_DECREASE_COEFFICIENT;
+
+            if (Math.Abs(rightLeftover.z) <= LEFTOVER_DECREASE_THRESHOLD)
+                rightLeftover = Vector3.zero;
+        }
+    }
+
+    private void TiltRight()
+    {
+        this.rightLeftover = right;
+
+        this.Tilt(right);
+    }
+
+    private void TiltLeft()
+    {
+        this.leftLeftover = left;
+
+        this.Tilt(left);
     }
 }

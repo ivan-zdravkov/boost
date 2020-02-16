@@ -13,11 +13,13 @@ public class RocketShip : MonoBehaviour
     private const float LEFTOVER_DECREASE_THRESHOLD = 0.01f;
 
     [SerializeField] float rotationThrust;
+    [SerializeField] float mainThrust;
 
     private Vector3 up = Vector3.up;
     private Vector3 left = Vector3.forward;
     private Vector3 right = Vector3.back;
 
+    private Vector3 thrustLeftover = Vector3.zero;
     private Vector3 leftLeftover = Vector3.zero;
     private Vector3 rightLeftover = Vector3.zero;
 
@@ -40,11 +42,13 @@ public class RocketShip : MonoBehaviour
     {
         if (Pressed(FLY))
         {
-            Fly();
+            Fly(up);
             FireEngine();
         }
         else
             StopEngine();
+
+        LeftoverThrust();
     }
 
     private void Rotate()
@@ -69,7 +73,7 @@ public class RocketShip : MonoBehaviour
 
     private void Tilt(Vector3 direction) => transform.Rotate(direction * rotationThrust * Time.deltaTime);
 
-    private void Fly() => rigidBody.AddRelativeForce(up);
+    private void Fly(Vector3 direction) => rigidBody.AddRelativeForce(direction * mainThrust * Time.deltaTime);
 
     private bool Pressed(KeyCode command) => Input.GetKey(command);
 
@@ -83,6 +87,19 @@ public class RocketShip : MonoBehaviour
     {
         if (this.audioSource.isPlaying)
             this.audioSource.Stop();
+    }
+
+    private void LeftoverThrust()
+    {
+        if (thrustLeftover != Vector3.zero)
+        {
+            Fly(thrustLeftover);
+
+            thrustLeftover *= LEFTOVER_DECREASE_COEFFICIENT;
+
+            if (Math.Abs(thrustLeftover.y) <= LEFTOVER_DECREASE_THRESHOLD)
+                thrustLeftover = Vector3.zero;
+        }
     }
 
     private void LeftoverRight()

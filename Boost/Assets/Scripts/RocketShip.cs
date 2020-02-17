@@ -38,6 +38,17 @@ public class RocketShip : MonoBehaviour
         Rotate();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Friendly":
+                break;
+            default:
+                break;
+        }
+    }
+
     private void Thrust()
     {
         if (Pressed(FLY))

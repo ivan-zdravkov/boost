@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RocketShip : MonoBehaviour
 {
@@ -9,11 +11,16 @@ public class RocketShip : MonoBehaviour
     private const KeyCode TILT_LEFT = KeyCode.A;
     private const KeyCode TILT_RIGHT = KeyCode.D;
 
+    private const float TRANSITION_DELAY = 1.5f;
+
     private const float LEFTOVER_DECREASE_COEFFICIENT = 0.99f;
     private const float LEFTOVER_DECREASE_THRESHOLD = 0.01f;
 
     [SerializeField] float rotationThrust;
     [SerializeField] float mainThrust;
+
+    [SerializeField] AudioClip victory;
+    [SerializeField] AudioClip destroy;
 
     private Vector3 up = Vector3.up;
     private Vector3 left = Vector3.forward;
@@ -26,6 +33,10 @@ public class RocketShip : MonoBehaviour
     private Rigidbody rigidBody;
     private AudioSource audioSource;
 
+    enum State { Alive, Dying, Transcending };
+
+    State state = State.Alive;
+
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
@@ -34,17 +45,34 @@ public class RocketShip : MonoBehaviour
 
     void Update()
     {
-        Thrust();
-        Rotate();
+        if (state == State.Alive)
+        {
+            Thrust();
+            Rotate();
+        }
+        else if (state == State.Dying)
+            StopEngine();
+        else if (state == State.Transcending)
+        {
+            StopEngine();
+            StopMoving();
+        }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
         switch (collision.gameObject.tag)
         {
             case "Friendly":
                 break;
+            case "Finish":
+                if (LandedOnFeetOfRocket(collision))
+                    StartCoroutine(LoadNextScene());
+                else
+                    StartCoroutine(Die());
+                break;
             default:
+                StartCoroutine(Die());
                 break;
         }
     }
@@ -79,15 +107,11 @@ public class RocketShip : MonoBehaviour
     }
 
     private void GainManualControl() => rigidBody.freezeRotation = true;
-
     private void ReleaseManualControl() => rigidBody.freezeRotation = false;
-
     private void Tilt(Vector3 direction) => transform.Rotate(direction * rotationThrust * Time.deltaTime);
-
     private void Fly(Vector3 direction) => rigidBody.AddRelativeForce(direction * mainThrust * Time.deltaTime);
-
     private bool Pressed(KeyCode command) => Input.GetKey(command);
-
+    private bool LandedOnFeetOfRocket(Collision collision) => collision.contacts.All(contact => contact.thisCollider.ToString().Contains("Bottom"));
     private void FireEngine()
     {
         if (!this.audioSource.isPlaying)
@@ -98,6 +122,12 @@ public class RocketShip : MonoBehaviour
     {
         if (this.audioSource.isPlaying)
             this.audioSource.Stop();
+    }
+
+    private void StopMoving()
+    {
+        rigidBody.velocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
     }
 
     private void LeftoverThrust()
@@ -151,5 +181,41 @@ public class RocketShip : MonoBehaviour
         this.leftLeftover = left;
 
         this.Tilt(left);
+    }
+
+    private IEnumerator LoadNextScene()
+    {
+        if (state == State.Alive)
+        {
+            state = State.Transcending;
+
+            AudioSource.PlayClipAtPoint(victory, Camera.main.transform.position);
+
+            yield return new WaitForSeconds(TRANSITION_DELAY);
+
+            state = State.Alive;
+
+            SceneManager.LoadScene(NextScene());
+        }
+    }
+
+    private IEnumerator Die()
+    {
+        state = State.Dying;
+
+        AudioSource.PlayClipAtPoint(destroy, Camera.main.transform.position);
+
+        yield return new WaitForSeconds(TRANSITION_DELAY);
+
+        state = State.Alive;
+
+        SceneManager.LoadScene(0);
+    }
+
+    private static int NextScene()
+    {
+        int nextScepe = SceneManager.GetActiveScene().buildIndex + 1;
+
+        return nextScepe <= SceneManager.sceneCount ? nextScepe : 0;
     }
 }

@@ -11,7 +11,7 @@ public class RocketShip : MonoBehaviour
     private const KeyCode TILT_LEFT = KeyCode.A;
     private const KeyCode TILT_RIGHT = KeyCode.D;
 
-    private const float TRANSITION_DELAY = 1.5f;
+    private const float TRANSITION_DELAY = 2.5f;
 
     private const float LEFTOVER_DECREASE_COEFFICIENT = 0.99f;
     private const float LEFTOVER_DECREASE_THRESHOLD = 0.01f;
@@ -73,7 +73,7 @@ public class RocketShip : MonoBehaviour
             case "Finish":
                 if (LandedOnFeetOfRocket(collision))
                     StartCoroutine(LoadNextScene());
-                else
+                else if (state == State.Alive)
                     StartCoroutine(Die());
                 break;
             default:

@@ -111,7 +111,7 @@ public class RocketShip : MonoBehaviour
     private void Tilt(Vector3 direction) => transform.Rotate(direction * rotationThrust * Time.deltaTime);
     private void Fly(Vector3 direction) => rigidBody.AddRelativeForce(direction * mainThrust * Time.deltaTime);
     private bool Pressed(KeyCode command) => Input.GetKey(command);
-    private bool LandedOnFeetOfRocket(Collision collision) => collision.contacts.All(contact => contact.thisCollider.ToString().Contains("Bottom"));
+    private bool LandedOnFeetOfRocket(Collision collision) => collision.contacts.Any(contact => contact.thisCollider.ToString().Contains("Bottom"));
     private void FireEngine()
     {
         if (!this.audioSource.isPlaying)
@@ -216,6 +216,6 @@ public class RocketShip : MonoBehaviour
     {
         int nextScepe = SceneManager.GetActiveScene().buildIndex + 1;
 
-        return nextScepe <= SceneManager.sceneCount ? nextScepe : 0;
+        return nextScepe <= SceneManager.sceneCountInBuildSettings ? nextScepe : 0;
     }
 }

@@ -22,6 +22,11 @@ public class RocketShip : MonoBehaviour
     [SerializeField] AudioClip victory;
     [SerializeField] AudioClip destroy;
 
+    [SerializeField] ParticleSystem leftThrustParticles;
+    [SerializeField] ParticleSystem rightThrustParticles;
+    [SerializeField] ParticleSystem successParticles;
+    [SerializeField] ParticleSystem deathParticles;
+
     private Vector3 up = Vector3.up;
     private Vector3 left = Vector3.forward;
     private Vector3 right = Vector3.back;
@@ -116,12 +121,24 @@ public class RocketShip : MonoBehaviour
     {
         if (!this.audioSource.isPlaying)
             this.audioSource.Play();
+
+        if (!this.leftThrustParticles.isPlaying)
+            this.leftThrustParticles.Play();
+
+        if (!this.rightThrustParticles.isPlaying)
+            this.rightThrustParticles.Play();
     }
 
     private void StopEngine()
     {
         if (this.audioSource.isPlaying)
             this.audioSource.Stop();
+
+        if (this.leftThrustParticles.isPlaying)
+            this.leftThrustParticles.Stop();
+
+        if (this.rightThrustParticles.isPlaying)
+            this.rightThrustParticles.Stop();
     }
 
     private void StopMoving()
@@ -191,6 +208,8 @@ public class RocketShip : MonoBehaviour
 
             AudioSource.PlayClipAtPoint(victory, Camera.main.transform.position);
 
+            successParticles.Play();
+
             yield return new WaitForSeconds(TRANSITION_DELAY);
 
             state = State.Alive;
@@ -205,6 +224,8 @@ public class RocketShip : MonoBehaviour
 
         AudioSource.PlayClipAtPoint(destroy, Camera.main.transform.position);
 
+        deathParticles.Play();
+
         yield return new WaitForSeconds(TRANSITION_DELAY);
 
         state = State.Alive;
@@ -216,6 +237,6 @@ public class RocketShip : MonoBehaviour
     {
         int nextScepe = SceneManager.GetActiveScene().buildIndex + 1;
 
-        return nextScepe <= SceneManager.sceneCountInBuildSettings ? nextScepe : 0;
+        return nextScepe < SceneManager.sceneCountInBuildSettings ? nextScepe : 0;
     }
 }

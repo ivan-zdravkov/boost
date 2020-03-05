@@ -37,6 +37,7 @@ public class RocketShip : MonoBehaviour
 
     private Rigidbody rigidBody;
     private AudioSource audioSource;
+    private Light engineLight;
 
     enum State { Alive, Dying, Transcending };
 
@@ -46,6 +47,10 @@ public class RocketShip : MonoBehaviour
     {
         rigidBody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+        engineLight = GetComponentsInChildren<Light>()
+            .FirstOrDefault(x => x.name == "EngineLight");
+
+        engineLight.enabled = false;
     }
 
     void Update()
@@ -127,6 +132,8 @@ public class RocketShip : MonoBehaviour
 
         if (!this.rightThrustParticles.isPlaying)
             this.rightThrustParticles.Play();
+
+        engineLight.enabled = true;
     }
 
     private void StopEngine()
@@ -139,6 +146,8 @@ public class RocketShip : MonoBehaviour
 
         if (this.rightThrustParticles.isPlaying)
             this.rightThrustParticles.Stop();
+
+        this.engineLight.enabled = false;
     }
 
     private void StopMoving()

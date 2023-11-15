@@ -1,2 +1,2 @@
 # Boost
-Boost is a 3D Unity game. Go play it at [boost.unity-3d.zdravkov.dev](https://boost.unity-3d.zdravkov.dev)
+A 3D Unity sandbox game. Showcasing Unity's physics, lighting and particle systems.
